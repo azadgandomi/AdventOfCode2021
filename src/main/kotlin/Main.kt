@@ -1,5 +1,5 @@
 import java.io.File
 
 fun main() {
-    val input = File("test.txt").readText().trim()
+    val input = File("input.txt").readText().trim()
 }
