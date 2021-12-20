@@ -3,7 +3,7 @@ infix fun Int.toward(to: Int): IntProgression {
     return IntProgression.fromClosedRange(this, to, step)
 }
 
-val adjacentAll = listOf((-1 to -1), (-1 to 0), (-1 to 1), (0 to -1), (0 to 1), (1 to -1), (1 to 0), (1 to 1))
+val adjacentInclusive = listOf((-1 to -1), (-1 to 0), (-1 to 1), (0 to -1), (0 to 0), (0 to 1), (1 to -1), (1 to 0), (1 to 1))
 val adjacentNonDiagonal = listOf((-1 to 0), (0 to -1), (0 to 1), (1 to 0))
 
 operator fun Pair<Int, Int>.plus(pair: Pair<Int, Int>): Pair<Int, Int> {
@@ -24,6 +24,15 @@ fun String.to2DMap(separator: String = ""): Map<Pair<Int, Int>, Int> {
             }
             .toMap()
     }
+}
+
+fun String.to2DBinaryMap(): Map<Pair<Int, Int>, Boolean> {
+    return this.trim().split('\n').withIndex()
+        .flatMap { row ->
+            row.value.withIndex().map { col -> (row.index to col.index) to (col.value == '#') }
+        }
+        .toMap()
+
 }
 
 fun String.to2DArray(separator: String = ""): Array<IntArray> {
