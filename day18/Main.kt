@@ -5,17 +5,37 @@ class Node {
     var right: Node? = null
     var parent: Node? = null
     var value = -1
-    var depth = 0
+    val depth: Int
+        get() {
+            var res = 0
+            var current = parent
+            while (current != null) {
+                current = current.parent
+                ++res
+            }
+            return res
+        }
+
+    fun deepCopy(parent: Node?): Node {
+        val node = Node()
+        node.parent = parent
+        if (value == -1) {
+            node.left = left!!.deepCopy(node)
+            node.right = right!!.deepCopy(node)
+        } else {
+            node.value = value
+        }
+        return node
+    }
 }
 
 class Number(private var root: Node) {
-    constructor(string: String) : this(createNode(string, null, 0))
+    constructor(string: String) : this(createNode(string, null))
 
     companion object {
-        private fun createNode(string: String, parent: Node?, depth: Int): Node {
+        private fun createNode(string: String, parent: Node?): Node {
             val node = Node()
             node.parent = parent
-            node.depth = depth
             if (string.length == 1) {
                 node.value = string.single().digitToInt()
             } else {
@@ -30,38 +50,25 @@ class Number(private var root: Node) {
                     }
                 }
                 assert(index != -1)
-                node.left = createNode(string.substring(1, index), node, depth + 1)
-                node.right = createNode(string.substring(index + 1, string.length - 1), node, depth + 1)
+                node.left = createNode(string.substring(1, index), node)
+                node.right = createNode(string.substring(index + 1, string.length - 1), node)
             }
 
             return node
         }
     }
 
-    private fun increaseDepths(node: Node){
-        node.depth++
-        if (node.value == -1) {
-            increaseDepths(node.left!!)
-            increaseDepths(node.right!!)
-        }
-    }
-
     fun sum(other: Number): Number {
         val newRoot = Node()
-        root.parent = newRoot
-        other.root.parent = newRoot
-        increaseDepths(root)
-        increaseDepths(other.root)
-        newRoot.left = root
-        newRoot.right = other.root
-        root = newRoot
-        reduce()
-        return this
+        newRoot.left = root.deepCopy(newRoot)
+        newRoot.right = other.root.deepCopy(newRoot)
+        val res = Number(newRoot)
+        res.reduce()
+        return res
     }
 
     private fun reduce() {
         do {
-            //println(getLeafList().map { it.value to it.depth })
             var cont = explode()
             if (cont) {
                 continue
@@ -71,20 +78,17 @@ class Number(private var root: Node) {
     }
 
     private fun split(): Boolean {
-        val list = getLeafList()
-        for (l in list.withIndex()) {
-            if (l.value.value > 9) {
+        for (l in getLeafList()) {
+            if (l.value > 9) {
                 val left = Node()
                 val right = Node()
-                left.depth = l.value.depth + 1
-                right.depth = l.value.depth + 1
-                left.parent = l.value
-                right.parent = l.value
-                left.value = l.value.value / 2
-                right.value = l.value.value / 2 + l.value.value % 2
-                l.value.value = -1
-                l.value.left = left
-                l.value.right = right
+                left.parent = l
+                right.parent = l
+                left.value = l.value / 2
+                right.value = l.value / 2 + l.value % 2
+                l.value = -1
+                l.left = left
+                l.right = right
                 return true
             }
         }
@@ -120,26 +124,13 @@ class Number(private var root: Node) {
                 nodeListStep(node.right!!, list)
             }
         }
+
         val list = emptyList<Node>().toMutableList()
         nodeListStep(root, list)
         return list
     }
 
-    private fun getLeafParentsList(): List<Node> {
-        fun nodeListStep(node: Node, list: MutableList<Node>) {
-            if (node.left!!.value != -1 || node.right!!.value != -1) {
-                list.add(node)
-            } else {
-                nodeListStep(node.left!!, list)
-                nodeListStep(node.right!!, list)
-            }
-        }
-        val list = emptyList<Node>().toMutableList()
-        nodeListStep(root, list)
-        return list
-    }
-
-    fun calcMag(node: Node = root): Int{
+    fun calcMag(node: Node = root): Int {
         if (node.value != -1) {
             return node.value
         }
@@ -151,18 +142,18 @@ class Number(private var root: Node) {
 
 fun main() {
     val input = File("input.txt").readLines()
+    val numbers = input.map { Number(it) }
     var max = 0
-    for(i1 in input.indices){
-        for(i2 in input.indices){
-            val numbers = input.map { Number(it) }
+    for (i1 in input.indices) {
+        for (i2 in input.indices) {
             val n1 = numbers[i1]
             val n2 = numbers[i2]
             var sum = n1.sum(n2).calcMag()
-            if(sum > max){
+            if (sum > max) {
                 max = sum
             }
             sum = n2.sum(n1).calcMag()
-            if(sum > max){
+            if (sum > max) {
                 max = sum
             }
         }
