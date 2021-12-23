@@ -1,2 +1,6 @@
-Player 1 starting position: 1
-Player 2 starting position: 2
+#############
+#...........#
+###A#C#B#A###
+  #D#D#B#C#
+  #########
+
